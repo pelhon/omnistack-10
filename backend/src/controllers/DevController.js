@@ -9,26 +9,30 @@ module.exports = {
 		},
 		async save(request, response) {
 				const { github_username, techs, latitude, longitude } = request.body;
-				let dev = await Dev.findOne( { github_username });
+				let dev = await Dev.findOne({ github_username });
 
 				if(!dev){
-						const github_response = await axios.get(`https://api.github.com/users/${github_username}`);
-						const { name = login, avatar_url, bio, login } = github_response.data;
+					const github_response = await axios.get(`https://api.github.com/users/${github_username}`)
+					.catch(err => {
+						// To-do: add message error when a user is not found
+						console.log('Error', err);
+					});
 
-						const techsArray = parseStringAsArray(techs);
+					const { name = login, avatar_url, bio, login } = github_response.data;
+					const techsArray = parseStringAsArray(techs);
 
-						const location = {
-								type: 'Point',
-								coordinates: [longitude, latitude],
-						}
-						dev = await Dev.create({
-								github_username,
-								name,
-								avatar_url,
-								bio,
-								techs: techsArray,
-								location
-						})
+					const location = {
+							type: 'Point',
+							coordinates: [longitude, latitude],
+					}
+					dev = await Dev.create({
+							github_username,
+							name,
+							avatar_url,
+							bio,
+							techs: techsArray,
+							location
+					})
 				}
 				return response.json(dev);
 		},
